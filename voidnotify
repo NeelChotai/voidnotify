@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+UPDATES="https://alpha.de.repo.voidlinux.org/void-updates/void-updates.txt"
+EMAIL="$@"
+
+if [ -z "$EMAIL" ]; then
+  echo "no email provided"
+  exit 1
+fi
+
+tmp="$(mktemp)"
+curl "$UPDATES" >> "$tmp"
+
+pkgs="$(cat "$tmp" | awk "/$EMAIL/,/^$/" | tail -n +3 | head -n -1)"
+
+if [ -z "$pkgs" ]; then
+  echo "no updates found"
+else
+  while IFS=' ' read -ra line; do
+    echo "${line[0]}: update to ${line[3]} available"
+  done <<< "$pkgs"
+fi
+
+rm "$tmp"
